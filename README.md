@@ -10,7 +10,7 @@ This will do the following:
 - create the cache in the app
 
 ```aiignore
-php artisan app:setup
+php Setup.php
 ```
 
 ## Login
