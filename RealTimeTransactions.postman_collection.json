@@ -1,0 +1,227 @@
+{
+	"info": {
+		"_postman_id": "44bd96e9-9fda-4262-be1e-bf849f2c20d6",
+		"name": "RealTimeTransactions",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2861240"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Generate Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password\",\n    \"device_name\": \"postman\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tokens"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Store",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random amount between 1 and 1000 with 2 decimal places",
+									"const amount = (Math.random() * 999 + 1).toFixed(2);",
+									"",
+									"// List of possible descriptions",
+									"const descriptions = [",
+									"    \"Grocery shopping\",",
+									"    \"Gas station\",",
+									"    \"Restaurant bill\",",
+									"    \"Online purchase\",",
+									"    \"Utility payment\",",
+									"    \"Phone bill\",",
+									"    \"Internet service\",",
+									"    \"Coffee shop\",",
+									"    \"Movie tickets\",",
+									"    \"Book store\"",
+									"];",
+									"",
+									"// List of account types",
+									"const accountTypes = [\"checking\", \"savings\", \"credit\"];",
+									"",
+									"// Set random values in environment variables",
+									"pm.environment.set(\"amount\", amount);",
+									"pm.environment.set(\"description\", descriptions[Math.floor(Math.random() * descriptions.length)]);",
+									"pm.environment.set(\"accountType\", accountTypes[Math.floor(Math.random() * accountTypes.length)]);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": {{amount}},\n    \"description\": \"{{description}}\",\n    \"accountType\": \"{{accountType}}\"\n}\n"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?page=1&accountType=checking",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "accountType",
+									"value": "checking"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Show",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"transactions",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "1|DOLF10xSLYQ6lr9YGrBBBS3xqcwQrerkDRhwDW1aa089a7dd",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "token",
+			"value": "your_token_here"
+		}
+	]
+}

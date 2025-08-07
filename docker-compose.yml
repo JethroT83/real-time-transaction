@@ -1,0 +1,124 @@
+services:
+  # PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: laravel-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-network
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+
+      # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d/
+    networks:
+      - laravel-network
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+
+      # MySQL Service
+  db:
+    image: mysql:8.0
+    container_name: laravel-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_ROOT_HOST: '%'
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - laravel-network
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: laravel-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel-network
+
+  reverb:
+      build:
+          context: .
+          dockerfile: docker/php/Dockerfile
+      container_name: reverb
+      restart: unless-stopped
+      working_dir: /var/www/
+      command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
+      environment:
+          - REVERB_APP_KEY=${REVERB_APP_KEY}
+          - REVERB_SERVER_ID=reverb
+          - APP_KEY=${APP_KEY}
+          - APP_ENV=${APP_ENV}
+          - DB_CONNECTION=${DB_CONNECTION}
+          - DB_HOST=${DB_HOST}
+          - DB_PORT=${DB_PORT}
+          - DB_DATABASE=${DB_DATABASE}
+          - DB_USERNAME=${DB_USERNAME}
+          - DB_PASSWORD=${DB_PASSWORD}
+      volumes:
+          - ./:/var/www
+      ports:
+          - "8080:8080"
+      networks:
+          - laravel-network
+      healthcheck:
+          test: [ "CMD", "nc", "-z", "localhost", "8080" ]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+      extra_hosts:
+          - "host.docker.internal:host-gateway"
+
+  queue:
+    build:
+        context: .
+        dockerfile: docker/php/Dockerfile
+    container_name: laravel-queue
+    restart: unless-stopped
+    working_dir: /var/www/
+    command: php artisan queue:work
+    environment:
+        - REVERB_APP_KEY=${REVERB_APP_KEY}
+        - REVERB_SERVER_ID=reverb
+        - APP_KEY=${APP_KEY}
+        - APP_ENV=${APP_ENV}
+        - DB_CONNECTION=${DB_CONNECTION}
+        - DB_HOST=${DB_HOST}
+        - DB_PORT=${DB_PORT}
+        - DB_DATABASE=${DB_DATABASE}
+        - DB_USERNAME=${DB_USERNAME}
+        - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+        - ./:/var/www
+    networks:
+        - laravel-network
+
+networks:
+  laravel-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
